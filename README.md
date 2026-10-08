@@ -12,6 +12,7 @@ Welcome to the ACCELQ Community External API documentation. This repository host
 - [Tenant Admin API](https://ajoe-alex.github.io/ACCELQ-Community-Swagger-External-API/Tenant%20Admin%20API)
 - [User Management API](https://ajoe-alex.github.io/ACCELQ-Community-Swagger-External-API/User%20Management%20API)
 - [Test Job API](https://ajoe-alex.github.io/ACCELQ-Community-Swagger-External-API/Test%20Job%20API)
+- [Activity Log API](https://ajoe-alex.github.io/ACCELQ-Community-Swagger-External-API/Activity%20Log%20API)
 
 ## About
 
