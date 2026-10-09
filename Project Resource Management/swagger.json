@@ -614,7 +614,7 @@
       "post": {
         "tags": ["Activity Logs"],
         "summary": "Fetch Scenario and Action Activity History",
-        "description": "Fetches the activity history of Scenarios and Actions in a project using a stateless cursor-based approach. Designed for clients who need to track every create, update and delete operation on Scenarios and Actions, without missing or duplicating records.\n\n### Call patterns\n\n**Initial call (no `cursor`)**\n\nOmit the `cursor` field and supply the filters. `activityAfter`, `activityBefore`, `entityTypes` and `activityTypes` are required. The server returns the first page of activity within the date range and freezes the filters into an opaque cursor token returned as `nextCursor`.\n\n**Subsequent calls (with `cursor`)**\n\nPass only the `cursor` field from the previous response's `nextCursor`. Do not include any filters or dates; they are already frozen inside the cursor. To change filters, make a fresh initial call without a cursor.\n\n### Polling\n\n- `hasMore: true` — a full page was returned. Call again immediately with `nextCursor` to retrieve the next page.\n- `hasMore: false` — all matching activity has been delivered.\n- **Retrieving newer activity** — activity recorded after the initial call is not included in the current cursor. Make a fresh initial call with `activityAfter` set to the `activityTime` of the most recent record received.\n\n### Request fields\n\n- **`actorEmails`** *(optional)* — list of email addresses of the users whose activity is to be retrieved. Matching is case-insensitive. If omitted, empty or `null`, activity of all users is returned. Email addresses that do not match any user return no records.\n- **`entityTypes`** *(required)* — list of entity types to include. Supported values: `ACTION`, `AUTO_SCENARIO`, `MANUAL_SCENARIO`.\n- **`activityTypes`** *(required)* — list of activity types to include. Supported values: `CREATE`, `UPDATE`, `DELETE`. Check-in, check-out and changes to parts of an entity, such as input parameters or test cases, are reported as `UPDATE`.\n- **`activityAfter`** *(required)* — start of the time range (inclusive). Refer to the **Date rules** section.\n- **`activityBefore`** *(required)* — end of the time range (exclusive). Refer to the **Date rules** section.\n- **`limit`** *(optional)* — maximum number of records per page. Defaults to 100; values above 1000 are reduced to 1000.\n- **`cursor`** — the `nextCursor` value from the previous response. Omit on the initial call. When a cursor is sent, all other fields must be omitted.\n\n### Date rules\n\n- Accepted format: ISO 8601 with an explicit UTC offset, e.g. `2026-06-01T00:00:00Z`.\n- `activityAfter` is inclusive; `activityBefore` is exclusive.\n- `activityAfter` cannot be in the future.\n- `activityAfter` cannot be older than 1 year.\n- If `activityBefore` is in the future, it is silently clamped to `now`.\n- `activityBefore` must be after `activityAfter` (after clamping).\n- The window between `activityAfter` and `activityBefore` must not exceed 90 days.\n\n### Ordering and safe upper bound\n\nResults are returned in descending order of when they were recorded, most recent first. A 5-second lag is applied to the upper time bound so that in-flight transactions have time to commit before they are read, preventing gaps in the results.\n\n### Access\n\nTenant admins and users whose role in the project has read access to Project Resources can access this API.",
+        "description": "Fetches the activity history of Scenarios and Actions in a project using a stateless cursor-based approach. Designed for clients who need to track every create, update and delete operation on Scenarios and Actions, without missing or duplicating records.\n\n### Call patterns\n\n**Initial call (no `cursor`)**\n\nOmit the `cursor` field and supply the filters. `activityAfter`, `activityBefore`, `entityTypes` and `activityTypes` are required. The server returns the first page of activity within the date range and freezes the filters into an opaque cursor token returned as `nextCursor`.\n\n**Subsequent calls (with `cursor`)**\n\nPass only the `cursor` field from the previous response's `nextCursor`. Do not include any filters or dates; they are already frozen inside the cursor. To change filters, make a fresh initial call without a cursor.\n\n### Polling\n\n- `hasMore: true` — a full page was returned. Call again immediately with `nextCursor` to retrieve the next page.\n- `hasMore: false` — all matching activity has been delivered.\n- **Retrieving newer activity** — activity recorded after the initial call is not included in the current cursor. To retrieve recent activity, make a fresh initial call.\n\n### Request fields\n\n- **`actorEmails`** *(optional)* — list of email addresses of the users whose activity is to be retrieved. Matching is case-insensitive. If omitted or empty, activity of all users is returned. Email addresses that do not match any user return no records.\n- **`entityTypes`** *(required)* — list of entity types to include. Supported values: `ACTION`, `AUTO_SCENARIO`, `MANUAL_SCENARIO`.\n- **`activityTypes`** *(required)* — list of activity types to include. Supported values: `CREATE`, `UPDATE`, `DELETE`. Check-in, check-out and changes to entity are reported as `UPDATE`.\n- **`activityAfter`** *(required)* — start of the time range (inclusive). Refer to the **Date rules** section.\n- **`activityBefore`** *(required)* — end of the time range (exclusive). Refer to the **Date rules** section.\n- **`limit`** *(optional)* — maximum number of records per page. Defaults to 100; values above 1000 are reduced to 1000.\n- **`cursor`** — the `nextCursor` value from the previous response. Omit on the initial call. When a cursor is sent, all other fields must be omitted.\n\n### Date rules\n\n- Accepted format: ISO 8601 with an explicit UTC offset, e.g. `2026-06-01T00:00:00Z`.\n- `activityAfter` is inclusive; `activityBefore` is exclusive.\n- `activityAfter` cannot be in the future.\n- `activityAfter` cannot be older than 1 year.\n- If `activityBefore` is in the future, it is silently clamped to `now`.\n- `activityBefore` must be after `activityAfter` (after clamping).\n- The window between `activityAfter` and `activityBefore` must not exceed 90 days.\n\n### Ordering and safe upper bound\n\nResults are returned in descending order of when they were recorded, most recent first. A 5-second lag is applied to the upper time bound so that in-flight transactions have time to commit before they are read, preventing gaps in the results.\n\n### Access\n\nTenant admins and users with a role in the project can access this API.",
         "operationId": "searchActivityLogs",
         "parameters": [],
         "requestBody": {
@@ -695,7 +695,7 @@
                 "nextPage": {
                   "summary": "Next page - cursor only",
                   "value": {
-                    "cursor": "eyJ2IjoxLCJwaiI6MTIsImxhc3RJZCI6NTgyMTR9.b3Jr8Yq1Zx"
+                    "cursor": "eyJ2IjoxLCJwaiTHiyIsImxhc3RJZCI6NTgyMTR9.b3Jr8Yq1Zx"
                   }
                 },
                 "singleDay": {
@@ -703,8 +703,8 @@
                   "value": {
                     "entityTypes": ["ACTION", "AUTO_SCENARIO", "MANUAL_SCENARIO"],
                     "activityTypes": ["CREATE", "UPDATE", "DELETE"],
-                    "activityAfter": "2026-09-29T00:00:00+05:30",
-                    "activityBefore": "2026-09-30T00:00:00+05:30"
+                    "activityAfter": "2026-09-29T00:00:00Z",
+                    "activityBefore": "2026-09-30T00:00:00Z"
                   }
                 }
               }
@@ -770,7 +770,7 @@
                     "nextCursor": {
                       "type": "string",
                       "description": "The pagination token for the next page of results. Pass this value as the cursor in the next request to retrieve the next page. Always returned, even when data is empty.",
-                      "example": "eyJ2IjoxLCJwaiI6MTIsImxhc3RJZCI6NTgyMTR9.b3Jr8Yq1Zx"
+                      "example": "eyJ2IjoxLCJffIKI6MTIsImxhc3RJZCI6NTgyMTR9.b3Jr8Yq1Zx"
                     },
                     "hasMore": {
                       "type": "boolean",
@@ -812,7 +812,7 @@
                           "entityName": "Login to QBANK"
                         }
                       ],
-                      "nextCursor": "eyJ2IjoxLCJsYXN0SWQiOjU4MjEyLCJmcm9tRXBvY2hNcyI6MTc5MDEyMTYwMDAwMCwidG9FcG9jaE1zIjoxNzkwNzI2NDAwMDAwLCJlbnRpdHlUeXBlcyI6WyJBQ1RJT04iLCJBVVRPX1NDRU5BUklPIiwiTUFOVUFMX1NDRU5BUklPIl0sImFjdGl2aXR5VHlwZXMiOlsiQ1JFQVRFIiwiVVBEQVRFIiwiREVMRVRFIl0sImxpbWl0IjoxMDB9",
+                      "nextCursor": "eyJ2IjoxLCJsYXN0SWQiOjU4MjEyLCJmcm9tRXBvY2hNcyI6MTc5MDEyMTYwMDAwMCwidG9FcG9jaE1zIjoxNzkwNzI2NDAwMDAwLCJlbnRpdHlUeXBlcyI6WyJBQ1RJT04iLCJBVVRPX1NDRU5BUklPIiwiTUFOVUFMX1NDRU5BUklP5VHlwZXMiOlsiQ1JFQVRFIiwiVVBEQVRFIiwiREVMRVRFIl0sImxpbWl0IjoxMDB9",
                       "hasMore": true
                     }
                   },
