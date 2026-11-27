@@ -3,7 +3,7 @@
   "info": {
     "title": "Scenario API",
     "version": "1.0.0",
-    "description": "APIs for retrieving and updating test Scenarios within an AccelQ project. These endpoints support advanced filtering, pagination, and bulk updates for efficient Scenario management."
+    "description": "Provides APIs to access and manage Scenarios and their Test Cases within an AccelQ project."
   },
   "servers": [
     {
@@ -46,7 +46,7 @@
       "post": {
         "tags": ["Scenario"],
         "summary": "Fetch Scenario details",
-        "description": "Fetches comprehensive information about test Scenarios within your project. This endpoint supports:\n\n- **Pagination**: Control response size with configurable page numbers and sizes (max 25 items per page)\n- **Flexible Filtering**: Filter by specific Scenario IDs or requirement traceability keys\n- **Optional Detailed Information**: Selectively include additional details such as custom fields, step details, requirement traceability, and scenario traceability in the response\n- **User-Specific Version View**: Results reflect the requesting user's current version of the entities.",
+        "description": "Fetches comprehensive information about test Scenarios within your project. This endpoint supports:\n\n- **Pagination**: Control response size with configurable page numbers and sizes (max 25 items per page)\n- **Flexible Filtering**: Filter by specific Scenario IDs or requirement traceability keys\n- **Optional Detailed Information**: Selectively include additional details such as custom fields, step details, requirement traceability, scenario traceability, last run details and defects in the response\n- **User-Specific Version View**: Results reflect the requesting user's current version of the entities.",
         "operationId": "getScenarioStepDetails",
         "parameters": [
           {
@@ -115,6 +115,14 @@
                       "scenarioTraceability": {
                         "type": "boolean",
                         "description": "Flag to include Scenario traceability linkage with other scenarios in the response. Defaults to false, if not specified."
+                      },
+                      "lastRunInfo": {
+                        "type": "boolean",
+                        "description": "Flag to include the last run details of the Scenario in the response. Defaults to false, if not specified."
+                      },
+                      "defects": {
+                        "type": "boolean",
+                        "description": "Flag to include the defects associated with the Scenario in the response. Defaults to false, if not specified."
                       }
                     }
                   }
@@ -258,6 +266,57 @@
                                   "type": "string",
                                   "description": "Current status of the linked Scenario",
                                   "example": "New"
+                                }
+                              }
+                            }
+                          },
+                          "lastRunInfo": {
+                            "type": "object",
+                            "description": "Details of the last run of the Scenario. Not included if the Scenario has never been run.",
+                            "properties": {
+                              "runId": {
+                                "type": "integer",
+                                "description": "ID of the last run",
+                                "example": 26
+                              },
+                              "lastRunTimestamp": {
+                                "type": "string",
+                                "format": "date-time",
+                                "description": "UTC Timestamp of the last run, in ISO 8601 format.",
+                                "example": "2026-11-08T08:58:39Z"
+                              },
+                              "passCount": {
+                                "type": "integer",
+                                "description": "Number of test cases passed in the last run",
+                                "example": 4
+                              },
+                              "failCount": {
+                                "type": "integer",
+                                "description": "Number of test cases failed in the last run",
+                                "example": 1
+                              },
+                              "executedBy": {
+                                "type": "string",
+                                "description": "Name of the user who executed the last run",
+                                "example": "Tenant Admin"
+                              }
+                            }
+                          },
+                          "defects": {
+                            "type": "array",
+                            "description": "List of defects logged on the runs of the Scenario",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "key": {
+                                  "type": "string",
+                                  "description": "Key of the defect",
+                                  "example": "TP-31"
+                                },
+                                "title": {
+                                  "type": "string",
+                                  "description": "Title of the defect",
+                                  "example": "Verify Funds Transfer"
                                 }
                               }
                             }
@@ -450,6 +509,54 @@
                         }
                       ]
                     }
+                  },
+                  "lastRunInfoAndDefects": {
+                    "value": {
+                      "page": 1,
+                      "pageSize": 10,
+                      "totalPages": 1,
+                      "totalCount": 2,
+                      "results": [
+                        {
+                          "id": 1,
+                          "name": "Ticket Booking",
+                          "description": "Scenario to test Ticket Booking functionality",
+                          "testCasesCount": 5,
+                          "traceabilityCount": 7,
+                          "status": "New",
+                          "createdBy": "Tenant Admin",
+                          "createdTimestamp": "2025-10-08T09:24:22Z",
+                          "lastModifiedBy": "Verni Cooper",
+                          "lastModifiedTimestamp": "2025-10-19T17:59:05Z",
+                          "lastRunInfo": {
+                            "runId": 26,
+                            "lastRunTimestamp": "2026-11-08T08:58:39Z",
+                            "passCount": 4,
+                            "failCount": 1,
+                            "executedBy": "Tenant Admin"
+                          },
+                          "defects": [
+                            {
+                              "key": "TP-31",
+                              "title": "Verify Funds Transfer"
+                            }
+                          ]
+                        },
+                        {
+                          "id": 3,
+                          "name": "User Registration",
+                          "description": "Scenario to test new user registration flow",
+                          "testCasesCount": 8,
+                          "traceabilityCount": 1,
+                          "status": "Completed",
+                          "createdBy": "John Citadel",
+                          "createdTimestamp": "2025-10-08T09:24:22Z",
+                          "lastModifiedBy": "Tenant Admin",
+                          "lastModifiedTimestamp": "2025-10-19T17:59:05Z",
+                          "defects": []
+                        }
+                      ]
+                    }
                   }
                 }
               }
@@ -517,8 +624,8 @@
     "/scn/scenarios/{scenarioType}/bulk-update": {
       "patch": {
         "tags": ["Scenario"],
-        "summary": "Bulk update Scenario Requirement Traceability and Status",
-        "description": "Updates requirement traceability and status for multiple Scenarios.",
+        "summary": "Bulk update Scenario Requirement Traceability, Status and Custom Fields",
+        "description": "Updates the requirement traceability, status, and custom fields of one or more Scenarios.\n\n#### Custom fields\n\n| Field&nbsp;&nbsp;&nbsp;&nbsp; | Description |\n| --- | --- |\n| `entries`&nbsp;&nbsp;&nbsp;&nbsp; | Custom fields to set, as pairs of name and value. Refer to the Custom field rules section below for the format of each value. |\n| `updateType`&nbsp;&nbsp;&nbsp;&nbsp; | Update type for a multi-select custom field. `APPEND` keeps the existing options and adds the new ones. `OVERRIDE` replaces all existing options with the new ones. |\n\n`updateType` applies to custom fields of the Multi-select type only. It is required when a request updates a Multi-select custom field. It is not allowed when none of the custom fields in the request are of the Multi-select type.\n\n#### Custom field rules\n\n* Custom field names are case-insensitive.\n* A custom field that does not exist in the project causes the request to fail with an error.\n* A custom field with an empty value is ignored and keeps its current value.\n\n| Field type | Value format |\n| --- | --- |\n| Text, Text area | Plain text of up to 4096 characters. |\n| Date | Date in `MM/dd/yyyy` format, for example `12/31/2026`. |\n| Boolean | `True` or `False`. The values `1` and `0` are also accepted. |\n| User list | Email address of a user that exists in the project. |\n| Single select | An option that exists for the field. |\n| Multi-select | Option names separated by commas, for example `chrome,firefox`. To include a comma in an option name, write it as `\\\\,`. For example, `chrome\\\\,browser` selects the single option `chrome,browser`. |",
         "operationId": "updateScenarios",
         "parameters": [
           {
@@ -547,12 +654,12 @@
                     "scenarioIds": {
                       "type": "array",
                       "items": { "type": "integer" },
-                      "description": "List of Scenario IDs to integrate with requirements",
+                      "description": "IDs of the Scenarios to update.",
                       "example": [1, 2, 3, 4, 5, 10]
                     },
                     "status": {
                       "type": "string",
-                      "description": "Status to update for the selected Scenarios. Example values include 'New', 'In Progress', 'Completed', etc.",
+                      "description": "Status to set on each Scenario.",
                       "example": "Completed"
                     },
                     "requirementTraceability": {
@@ -576,6 +683,27 @@
                           "example": "JIRA HOME"
                         }
                       }
+                    },
+                    "customFields": {
+                      "type": "object",
+                      "required": ["entries"],
+                      "properties": {
+                        "entries": {
+                          "type": "object",
+                          "additionalProperties": { "type": "string" },
+                          "description": "Custom fields to set, as pairs of name and value.",
+                          "example": {
+                            "Priority": "High",
+                            "Release Date": "12/31/2026",
+                            "Browser": "chrome,firefox"
+                          }
+                        },
+                        "updateType": {
+                          "type": "string",
+                          "enum": ["APPEND", "OVERRIDE"],
+                          "description": "Update type for a multi-select custom field. `APPEND` keeps the existing options and adds the new ones. `OVERRIDE` replaces all existing options with the new ones. Required when a multi-select custom field is updated, and not allowed otherwise."
+                        }
+                      }
                     }
                   }
                 },
@@ -596,6 +724,17 @@
                       "requirementKeys": ["TP-51", "TP-319", "TP-987"],
                       "updateType": "OVERRIDE",
                       "externalIntegrationProject": "SanityWorkSpace"
+                    }
+                  },
+                  {
+                    "scenarioIds": [7, 8],
+                    "customFields": {
+                      "entries": {
+                        "Priority": "High",
+                        "Release Date": "12/31/2026",
+                        "Browser": "chrome,firefox"
+                      },
+                      "updateType": "OVERRIDE"
                     }
                   }
                 ]
@@ -635,7 +774,7 @@
             }
           },
           "400": {
-            "description": "Bad Request - Validation errors",
+            "description": "One or more values in the request are not valid. No Scenarios are updated.",
             "content": {
               "application/json": {
                 "schema": {
@@ -672,6 +811,66 @@
                     "summary": "Missing external integration project",
                     "value": {
                       "error": "externalIntegrationProject cannot be null or empty"
+                    }
+                  },
+                  "nothingToUpdate": {
+                    "summary": "No field to update",
+                    "value": {
+                      "error": "Bad request: Either 'requirementTraceability', 'status' or 'customFields' must be specified."
+                    }
+                  },
+                  "unknownCustomField": {
+                    "summary": "Custom field does not exist",
+                    "value": {
+                      "error": "Custom Field(s) Foo do not exist for Scenarios in this project."
+                    }
+                  },
+                  "invalidCustomFieldDate": {
+                    "summary": "Value is not a date in the MM/dd/yyyy format",
+                    "value": {
+                      "error": "Invalid date format '2026-12-31' for custom field Release Date. Expected format is MM/dd/yyyy."
+                    }
+                  },
+                  "invalidCustomFieldMonthDayOrYear": {
+                    "summary": "Invalid month, day, or year in a date custom field",
+                    "value": {
+                      "error": "Invalid month or day or year passed for custom field Release Date."
+                    }
+                  },
+                  "invalidCustomFieldValue": {
+                    "summary": "Invalid value for a custom field",
+                    "value": {
+                      "error": "Invalid value for custom field Priority with value 'Urgent'."
+                    }
+                  },
+                  "invalidCustomFieldOptions": {
+                    "summary": "Invalid options for a multi-select custom field",
+                    "value": {
+                      "error": "Invalid values for custom field Browser: safari."
+                    }
+                  },
+                  "customFieldTooLong": {
+                    "summary": "Custom field value too long",
+                    "value": {
+                      "error": "Custom Field 'Notes' exceeds maximum length of 4096 characters."
+                    }
+                  },
+                  "updateTypeRequired": {
+                    "summary": "Update type missing for a multi-select custom field",
+                    "value": {
+                      "error": "customFields.updateType must be specified when a multi-select custom field is updated."
+                    }
+                  },
+                  "updateTypeNotAllowed": {
+                    "summary": "Update type specified without a multi-select custom field",
+                    "value": {
+                      "error": "customFields.updateType is allowed only when a multi-select custom field is updated."
+                    }
+                  },
+                  "invalidUpdateType": {
+                    "summary": "Invalid update type",
+                    "value": {
+                      "error": "customFields.updateType must be either APPEND or OVERRIDE."
                     }
                   }
                 }
@@ -720,6 +919,309 @@
                     "error": {
                       "type": "string",
                       "example": "Internal error occurred while requirements integration"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/scn/scenarios/{scenarioType}/{scenarioId}/data-table/bulk-update": {
+      "patch": {
+        "tags": ["Scenario"],
+        "summary": "Bulk update Test Case Tags and Custom Fields",
+        "description": "Updates the tags and custom fields of one or more Test Cases in a Scenario.\n\n#### Request fields\n\n| Field&nbsp;&nbsp;&nbsp;&nbsp; | Description |\n| --- | --- |\n| `testCaseIds`&nbsp;&nbsp;&nbsp;&nbsp; | IDs of the Test Cases to update. |\n| `tags`&nbsp;&nbsp;&nbsp;&nbsp; | Tags to apply to each Test Case. Refer to the Tags section below. |\n| `customFields`&nbsp;&nbsp;&nbsp;&nbsp; | Custom fields to set on each Test Case. Refer to the Custom fields section below. |\n\n`testCaseIds` is required. At least one of `tags` or `customFields` is also required. Requests that do not meet these conditions fail with an error.\n\n#### Tags\n\n| Field&nbsp;&nbsp;&nbsp;&nbsp; | Description |\n| --- | --- |\n| `entries`&nbsp;&nbsp;&nbsp;&nbsp; | Tags to apply to each Test Case. Each tag can have up to 255 characters. |\n| `updateType`&nbsp;&nbsp;&nbsp;&nbsp; | Determines how the specified tags are applied. `APPEND` keeps the existing tags and adds the new ones. `OVERRIDE` replaces all existing tags with the new ones. |\n\nBoth `entries` and `updateType` are required for `tags`. Requests that omit either one fail with an error.\n\n#### Custom fields\n\n| Field&nbsp;&nbsp;&nbsp;&nbsp; | Description |\n| --- | --- |\n| `entries`&nbsp;&nbsp;&nbsp;&nbsp; | Custom fields to set, as pairs of name and value. Refer to the Custom field rules section below for the format of each value. |\n| `updateType`&nbsp;&nbsp;&nbsp;&nbsp; | Update type for a multi-select custom field. `APPEND` keeps the existing options and adds the new ones. `OVERRIDE` replaces all existing options with the new ones. |\n\n`updateType` applies to custom fields of the Multi-select type only. It is required when a request updates a Multi-select custom field. It is not allowed when none of the custom fields in the request are of the Multi-select type.\n\n#### Custom field rules\n\n* Custom field names are case-insensitive.\n* A custom field that does not exist in the project causes the request to fail with an error.\n* A custom field with an empty value is ignored and keeps its current value.\n\n| Field type | Value format |\n| --- | --- |\n| Text, Text area | Plain text of up to 4096 characters. |\n| Date | Date in `MM/dd/yyyy` format, for example `12/31/2026`. |\n| Boolean | `True` or `False`. The values `1` and `0` are also accepted. |\n| User list | Email address of a user that exists in the project. |\n| Single select | An option that exists for the field. |\n| Multi-select | Option names separated by commas, for example `chrome,firefox`. To include a comma in an option name, write it as `\\\\,`. For example, `chrome\\\\,browser` selects the single option `chrome,browser`. |",
+        "operationId": "updateTestCases",
+        "parameters": [
+          {
+            "name": "scenarioType",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string", "enum": ["auto", "manual"] },
+            "description": "Scenario Type"
+          },
+          {
+            "name": "scenarioId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "integer" },
+            "description": "ID of the Scenario that the Test Cases belong to",
+            "example": 4343
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": ["testCaseIds"],
+                  "properties": {
+                    "testCaseIds": {
+                      "type": "array",
+                      "items": { "type": "integer" },
+                      "description": "IDs of the Test Cases to update.",
+                      "example": [4436, 4437]
+                    },
+                    "tags": {
+                      "type": "object",
+                      "required": ["entries", "updateType"],
+                      "properties": {
+                        "entries": {
+                          "type": "array",
+                          "items": { "type": "string" },
+                          "description": "Tags to apply to each Test Case. Each tag can have up to 255 characters.",
+                          "example": ["smoke", "login"]
+                        },
+                        "updateType": {
+                          "type": "string",
+                          "enum": ["APPEND", "OVERRIDE"],
+                          "description": "Determines how the specified tags are applied. `APPEND` keeps the existing tags and adds the new ones. `OVERRIDE` replaces all existing tags with the new ones."
+                        }
+                      }
+                    },
+                    "customFields": {
+                      "type": "object",
+                      "required": ["entries"],
+                      "properties": {
+                        "entries": {
+                          "type": "object",
+                          "additionalProperties": { "type": "string" },
+                          "description": "Custom fields to set, as pairs of name and value.",
+                          "example": {
+                            "Priority": "High",
+                            "Release Date": "12/31/2026",
+                            "Browser": "chrome,firefox"
+                          }
+                        },
+                        "updateType": {
+                          "type": "string",
+                          "enum": ["APPEND", "OVERRIDE"],
+                          "description": "Update type for a multi-select custom field. `APPEND` keeps the existing options and adds the new ones. `OVERRIDE` replaces all existing options with the new ones. Required when a multi-select custom field is updated, and not allowed otherwise."
+                        }
+                      }
+                    }
+                  }
+                },
+                "example": [
+                  {
+                    "testCaseIds": [4436, 4437],
+                    "tags": {
+                      "entries": ["smoke", "regression"],
+                      "updateType": "APPEND"
+                    },
+                    "customFields": {
+                      "entries": {
+                        "Priority": "High",
+                        "Browser": "chrome,firefox"
+                      },
+                      "updateType": "OVERRIDE"
+                    }
+                  },
+                  {
+                    "testCaseIds": [4440],
+                    "customFields": {
+                      "entries": {
+                        "Release Date": "12/31/2026"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Bulk update completed with detailed results showing successfully updated Test Cases, checkout conflicts, and not found Test Case IDs.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "updatedEntities": {
+                      "type": "array",
+                      "items": { "type": "integer" },
+                      "description": "List of test case IDs that were successfully updated",
+                      "example": [4436]
+                    },
+                    "notUpdatedOthersCheckedOutEntities": {
+                      "type": "array",
+                      "items": { "type": "integer" },
+                      "description": "Contains the test case IDs that could not be updated because their Scenario is checked out by another user.",
+                      "example": [4440]
+                    },
+                    "notFoundEntities": {
+                      "type": "array",
+                      "items": { "type": "integer" },
+                      "description": "List of test case IDs that were not found in the Scenario",
+                      "example": [4437]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "One or more values in the request are not valid. No Test Cases are updated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "testCaseIds cannot be null or empty"
+                    }
+                  }
+                },
+                "examples": {
+                  "nullRequestBody": {
+                    "summary": "Null request body",
+                    "value": { "error": "Request Body cannot be null or empty" }
+                  },
+                  "nullTestCaseIds": {
+                    "summary": "Missing Test Case IDs",
+                    "value": { "error": "testCaseIds cannot be null or empty" }
+                  },
+                  "nothingToUpdate": {
+                    "summary": "No field to update",
+                    "value": {
+                      "error": "Bad request: Either 'tags' or 'customFields' must be specified."
+                    }
+                  },
+                  "tagTooLong": {
+                    "summary": "Tag name too long",
+                    "value": {
+                      "error": "One of the given tags exceeds the maximum length of 255 characters."
+                    }
+                  },
+                  "unknownCustomField": {
+                    "summary": "Custom field does not exist",
+                    "value": {
+                      "error": "Custom Field(s) Foo do not exist for Test Cases in this project."
+                    }
+                  },
+                  "invalidCustomFieldDate": {
+                    "summary": "Value is not a date in the MM/dd/yyyy format",
+                    "value": {
+                      "error": "Invalid date format '2026-12-31' for custom field Release Date. Expected format is MM/dd/yyyy."
+                    }
+                  },
+                  "invalidCustomFieldMonthDayOrYear": {
+                    "summary": "Invalid month, day, or year in a date custom field",
+                    "value": {
+                      "error": "Invalid month or day or year passed for custom field Release Date."
+                    }
+                  },
+                  "invalidCustomFieldValue": {
+                    "summary": "Invalid value for a custom field",
+                    "value": {
+                      "error": "Invalid value for custom field Priority with value 'Urgent'."
+                    }
+                  },
+                  "invalidCustomFieldOptions": {
+                    "summary": "Invalid options for a multi-select custom field",
+                    "value": {
+                      "error": "Invalid values for custom field Browser: safari."
+                    }
+                  },
+                  "customFieldTooLong": {
+                    "summary": "Custom field value too long",
+                    "value": {
+                      "error": "Custom Field 'Notes' exceeds maximum length of 4096 characters."
+                    }
+                  },
+                  "tagsIncomplete": {
+                    "summary": "Tags without entries or update type",
+                    "value": {
+                      "error": "tags.entries and tags.updateType must both be specified."
+                    }
+                  },
+                  "updateTypeRequired": {
+                    "summary": "Update type missing for a multi-select custom field",
+                    "value": {
+                      "error": "customFields.updateType must be specified when a multi-select custom field is updated."
+                    }
+                  },
+                  "updateTypeNotAllowed": {
+                    "summary": "Update type specified without a multi-select custom field",
+                    "value": {
+                      "error": "customFields.updateType is allowed only when a multi-select custom field is updated."
+                    }
+                  },
+                  "invalidUpdateType": {
+                    "summary": "Invalid update type",
+                    "value": {
+                      "error": "tags.updateType must be either APPEND or OVERRIDE."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid authentication credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "Invalid user credentials or API key"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - User does not have permission to perform this operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "User does not have authorization to access this feature"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found - The Scenario does not exist in the project",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "Scenario with id '4343' not found"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "Internal error occurred while Test Case bulk update."
                     }
                   }
                 }

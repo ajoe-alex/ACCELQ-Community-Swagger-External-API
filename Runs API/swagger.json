@@ -295,6 +295,13 @@
                             "example": "true",
                             "description": "Verifies accessibility compliance of different application pages according to established standards. This is automatically invoked as the test application navigates through different pages during the execution of automation test cases."
                           },
+                          "webAccessibilityFailOnSeverity": {
+                            "type": "string",
+                            "enum": ["NEVER", "CRITICAL_ONLY", "SERIOUS_AND_ABOVE", "MODERATE_AND_ABOVE", "ANY_VIOLATION"],
+                            "default": "ANY_VIOLATION",
+                            "example": "SERIOUS_AND_ABOVE",
+                            "description": "Severity of accessibility violations at or above which the test case fails. Applicable only when `enableWebAccessibilityTesting` is true.\n\nDefaults to ANY_VIOLATION if not provided.\n\n- `NEVER`: Never fail the test; all violations are reported as warnings.\n- `CRITICAL_ONLY`: Fail on critical violations.\n- `SERIOUS_AND_ABOVE`: Fail on critical and serious violations.\n- `MODERATE_AND_ABOVE`: Fail on critical, serious and moderate violations.\n- `ANY_VIOLATION`: Fail on any violation."
+                          },
                           "enableWebPerformanceTesting": {
                             "type": "boolean",
                             "example": "true",
@@ -687,6 +694,7 @@
                         },
                         "browserKeepAlive": true,
                         "enableWebAccessibilityTesting": true,
+                        "webAccessibilityFailOnSeverity": "SERIOUS_AND_ABOVE",
                         "enableWebPerformanceTesting": true,
                         "webPerformanceSlaThreshold": 10,
                         "webDriverProfileName": "Web Driver Profile 1"
@@ -934,6 +942,7 @@
                         },
                         "browserKeepAlive": true,
                         "enableWebAccessibilityTesting": true,
+                        "webAccessibilityFailOnSeverity": "SERIOUS_AND_ABOVE",
                         "enableWebPerformanceTesting": true,
                         "webPerformanceSlaThreshold": 10,
                         "webDriverProfileName": "Web Driver Profile 1"
@@ -1060,6 +1069,7 @@
                         },
                         "browserKeepAlive": true,
                         "enableWebAccessibilityTesting": true,
+                        "webAccessibilityFailOnSeverity": "SERIOUS_AND_ABOVE",
                         "enableWebPerformanceTesting": true,
                         "webPerformanceSlaThreshold": 10,
                         "webDriverProfileName": "Web Driver Profile 1"
@@ -1583,6 +1593,13 @@
                             "type": "boolean",
                             "example": "true",
                             "description": "Verifies accessibility compliance of different application pages according to established standards. This is automatically invoked as the test application navigates through different pages during the execution of automation test cases."
+                          },
+                          "webAccessibilityFailOnSeverity": {
+                            "type": "string",
+                            "enum": ["NEVER", "CRITICAL_ONLY", "SERIOUS_AND_ABOVE", "MODERATE_AND_ABOVE", "ANY_VIOLATION"],
+                            "default": "ANY_VIOLATION",
+                            "example": "SERIOUS_AND_ABOVE",
+                            "description": "Severity of accessibility violations at or above which the test case fails. Applicable only when `enableWebAccessibilityTesting` is true.\n\nDefaults to ANY_VIOLATION if not provided.\n\n- `NEVER`: Never fail the test; all violations are reported as warnings.\n- `CRITICAL_ONLY`: Fail on critical violations.\n- `SERIOUS_AND_ABOVE`: Fail on critical and serious violations.\n- `MODERATE_AND_ABOVE`: Fail on critical, serious and moderate violations.\n- `ANY_VIOLATION`: Fail on any violation."
                           },
                           "enableWebPerformanceTesting": {
                             "type": "boolean",
@@ -2544,6 +2561,13 @@
                             "example": "true",
                             "description": "Verifies accessibility compliance of different application pages according to established standards. This is automatically invoked as the test application navigates through different pages during the execution of automation test cases."
                           },
+                          "webAccessibilityFailOnSeverity": {
+                            "type": "string",
+                            "enum": ["NEVER", "CRITICAL_ONLY", "SERIOUS_AND_ABOVE", "MODERATE_AND_ABOVE", "ANY_VIOLATION"],
+                            "default": "ANY_VIOLATION",
+                            "example": "SERIOUS_AND_ABOVE",
+                            "description": "Severity of accessibility violations at or above which the test case fails. Applicable only when `enableWebAccessibilityTesting` is true.\n\nDefaults to ANY_VIOLATION if not provided.\n\n- `NEVER`: Never fail the test; all violations are reported as warnings.\n- `CRITICAL_ONLY`: Fail on critical violations.\n- `SERIOUS_AND_ABOVE`: Fail on critical and serious violations.\n- `MODERATE_AND_ABOVE`: Fail on critical, serious and moderate violations.\n- `ANY_VIOLATION`: Fail on any violation."
+                          },
                           "enableWebPerformanceTesting": {
                             "type": "boolean",
                             "example": "true",
@@ -3323,6 +3347,450 @@
                         ]
                       }
                     ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/test-exec/runs": {
+      "post": {
+        "tags": [
+          "Runs"
+        ],
+        "summary": "Get execution history of Scenarios and Test Suites",
+        "description": "Retrieves the execution history of Scenarios and Test Suites within a date range, along with the defects associated to each run. \n\n**Request fields**\n- `testType` *(optional)* — type of the Scenarios and Test Suites. Supported values: `AUTO`, `MANUAL`. If omitted, runs of both types are returned.\n- `scenarioIds` *(optional)* — list of Scenario IDs whose runs are to be retrieved.\n- `testSuiteIds` *(optional)* — list of Test Suite IDs whose runs are to be retrieved. If neither `scenarioIds` nor `testSuiteIds` is provided, runs of all Scenarios and Test Suites in the project are returned.\n- `filter` *(required)* — criteria to filter the runs.\n    - `fromDate` *(required)* — start of the date range (inclusive). Refer to the **Date rules** section.\n    - `toDate` *(required)* — end of the date range (inclusive). Refer to the **Date rules** section.\n    - `status` *(optional)* — list of run statuses to include. Supported values: `SCHEDULED`, `IN_PROGRESS`, `COMPLETED`, `ABORTED`, `ERROR`.\n    - `executedBy` *(optional)* — list of email addresses of the users who started the runs.\n    - `appEnvironment` *(optional)* — list of App Environment names on which the runs were executed.\n    - `hasDefects` *(optional)* — `true` to retrieve only runs with defects; `false` to retrieve only runs without defects.\n    - `executionParameters` *(optional)* — list of execution parameter names and the values with which the runs were executed.\n\n**Date rules**\n- `fromDate` and `toDate` must be in `yyyy-MM-dd` format.\n- `fromDate` cannot be a future date or older than one year.\n- A `toDate` in the future is treated as the current date.\n- `toDate` cannot be earlier than `fromDate`; the same date is allowed.\n- The date range cannot exceed 90 days.\n\n**Ordering and pagination**\n- Runs are sorted by their latest activity, with the most recent run first. When both `scenarioIds` and `testSuiteIds` are provided, runs are sorted by run ID in descending order.\n- Results are paginated using `pageNumber` and `pageSize`. The maximum page size is 25.",
+        "operationId": "getExecutionHistory",
+        "parameters": [
+          {
+            "name": "pageNumber",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 1,
+              "minimum": 1
+            },
+            "description": "Page number to retrieve. Defaults to 1."
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 25,
+              "minimum": 1,
+              "maximum": 25
+            },
+            "description": "Number of runs per page. Defaults to 25; the maximum allowed value is 25."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "filter"
+                ],
+                "properties": {
+                  "testType": {
+                    "type": "string",
+                    "enum": [
+                      "AUTO",
+                      "MANUAL"
+                    ],
+                    "description": "Type of the Scenarios and Test Suites. When omitted, both automated and manual runs are returned. IDs that do not match the specified type are ignored."
+                  },
+                  "scenarioIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "integer"
+                    },
+                    "description": "IDs of the Scenarios, as shown in ACCELQ. IDs that do not exist in the project are ignored.",
+                    "example": [
+                      4343,
+                      4338
+                    ]
+                  },
+                  "testSuiteIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "integer"
+                    },
+                    "description": "IDs of the Test Suites, as shown in ACCELQ. IDs that do not exist in the project are ignored.",
+                    "example": [
+                      11
+                    ]
+                  },
+                  "filter": {
+                    "type": "object",
+                    "required": [
+                      "fromDate",
+                      "toDate"
+                    ],
+                    "description": "Criteria used to filter the runs.",
+                    "properties": {
+                      "fromDate": {
+                        "type": "string",
+                        "format": "date",
+                        "description": "Start of the date range (inclusive), in `yyyy-MM-dd` format. Cannot be a future date or older than one year.",
+                        "example": "2026-11-01"
+                      },
+                      "toDate": {
+                        "type": "string",
+                        "format": "date",
+                        "description": "End of the date range (inclusive), in `yyyy-MM-dd` format. A future date is treated as the current date. Cannot be earlier than `fromDate`, and the range cannot exceed 90 days.",
+                        "example": "2026-11-20"
+                      },
+                      "status": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "enum": [
+                            "SCHEDULED",
+                            "IN_PROGRESS",
+                            "COMPLETED",
+                            "ABORTED",
+                            "ERROR"
+                          ]
+                        },
+                        "description": "Run statuses to include (case-insensitive). When omitted, runs of all these statuses are returned.",
+                        "example": [
+                          "COMPLETED",
+                          "ABORTED"
+                        ]
+                      },
+                      "executedBy": {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "format": "email"
+                        },
+                        "description": "Emails of the users who started the runs, including inactive users. Emails that do not match any user are ignored; if none match, no runs are returned.",
+                        "example": [
+                          "john.doe@company.com"
+                        ]
+                      },
+                      "appEnvironment": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        },
+                        "description": "Names of the App Environments the runs were executed on (case-insensitive). Names that do not exist in the project are ignored; if none exist, no runs are returned.",
+                        "example": [
+                          "Staging"
+                        ]
+                      },
+                      "hasDefects": {
+                        "type": "boolean",
+                        "description": "`true` returns only runs with defects logged; `false` returns only runs without defects. When omitted, both are returned.",
+                        "example": true
+                      },
+                      "executionParameters": {
+                        "type": "array",
+                        "description": "Execution parameter values the runs were executed with. Only List and Boolean parameters are supported; Boolean values must be true or false. Values within a parameter are combined using OR, and parameters are combined using AND. If a parameter does not exist in the project, no runs are returned.",
+                        "items": {
+                          "type": "object",
+                          "required": [
+                            "name",
+                            "values"
+                          ],
+                          "properties": {
+                            "name": {
+                              "type": "string",
+                              "description": "Name of the execution parameter (case-insensitive).",
+                              "example": "Release"
+                            },
+                            "values": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              },
+                              "description": "Values to match.",
+                              "example": [
+                                "R1",
+                                "R2"
+                              ]
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "examples": {
+                "allFilters": {
+                  "summary": "Runs of Scenarios and Test Suites with all filters",
+                  "value": {
+                    "testType": "AUTO",
+                    "scenarioIds": [
+                      4343,
+                      4338
+                    ],
+                    "testSuiteIds": [
+                      11
+                    ],
+                    "filter": {
+                      "fromDate": "2026-11-01",
+                      "toDate": "2026-11-20",
+                      "status": [
+                        "COMPLETED",
+                        "ABORTED"
+                      ],
+                      "executedBy": [
+                        "john.doe@company.com"
+                      ],
+                      "appEnvironment": [
+                        "Staging"
+                      ],
+                      "hasDefects": true,
+                      "executionParameters": [
+                        {
+                          "name": "Release",
+                          "values": [
+                            "R1",
+                            "R2"
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Paginated list of runs matching the request.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "page": {
+                      "type": "integer",
+                      "description": "Current page number.",
+                      "example": 1
+                    },
+                    "pageSize": {
+                      "type": "integer",
+                      "description": "Number of runs per page.",
+                      "example": 25
+                    },
+                    "totalPages": {
+                      "type": "integer",
+                      "description": "Total number of pages.",
+                      "example": 1
+                    },
+                    "totalCount": {
+                      "type": "integer",
+                      "description": "Total number of runs matching the request.",
+                      "example": 3
+                    },
+                    "results": {
+                      "type": "array",
+                      "description": "Runs on the current page.",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "runId": {
+                            "type": "integer",
+                            "description": "ID of the run (Job ID in ACCELQ).",
+                            "example": 90
+                          },
+                          "scenarioId": {
+                            "type": "integer",
+                            "description": "ID of the Scenario of the run, as shown in ACCELQ. Included only for Scenario runs.",
+                            "example": 4343
+                          },
+                          "testSuiteId": {
+                            "type": "integer",
+                            "description": "ID of the Test Suite of the run, as shown in ACCELQ. Included only for Test Suite runs.",
+                            "example": 11
+                          },
+                          "runTimestamp": {
+                            "type": "string",
+                            "format": "date-time",
+                            "description": "Start time of the run in UTC (ISO 8601): the actual start time, or the scheduled start time if the run has not started executing.",
+                            "example": "2026-11-19T15:06:51Z"
+                          },
+                          "passCount": {
+                            "type": "integer",
+                            "description": "Number of test cases passed in this run.",
+                            "example": 1
+                          },
+                          "failCount": {
+                            "type": "integer",
+                            "description": "Number of test cases failed in this run.",
+                            "example": 2
+                          },
+                          "totalCount": {
+                            "type": "integer",
+                            "description": "Total number of test cases in this run.",
+                            "example": 3
+                          },
+                          "executedBy": {
+                            "type": "string",
+                            "description": "Name of the user who started the run.",
+                            "example": "John Doe"
+                          },
+                          "defects": {
+                            "type": "array",
+                            "description": "Defects logged on this run. Empty if none.",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "key": {
+                                  "type": "string",
+                                  "description": "Key of the defect.",
+                                  "example": "TP-31"
+                                },
+                                "title": {
+                                  "type": "string",
+                                  "description": "Title of the defect.",
+                                  "example": "Verify Funds Transfer"
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "examples": {
+                  "executionHistory": {
+                    "summary": "Runs of a Scenario and a Test Suite",
+                    "value": {
+                      "page": 1,
+                      "pageSize": 25,
+                      "totalPages": 1,
+                      "totalCount": 3,
+                      "results": [
+                        {
+                          "runId": 90,
+                          "scenarioId": 4343,
+                          "runTimestamp": "2026-11-19T15:06:51Z",
+                          "passCount": 1,
+                          "failCount": 2,
+                          "totalCount": 3,
+                          "executedBy": "John Doe",
+                          "defects": [
+                            {
+                              "key": "TP-31",
+                              "title": "Verify Funds Transfer"
+                            }
+                          ]
+                        },
+                        {
+                          "runId": 91,
+                          "scenarioId": 4343,
+                          "runTimestamp": "2026-11-19T15:08:53Z",
+                          "passCount": 1,
+                          "failCount": 1,
+                          "totalCount": 2,
+                          "executedBy": "John Doe",
+                          "defects": []
+                        },
+                        {
+                          "runId": 87,
+                          "testSuiteId": 11,
+                          "runTimestamp": "2026-11-19T14:56:58Z",
+                          "passCount": 0,
+                          "failCount": 1,
+                          "totalCount": 1,
+                          "executedBy": "Jane Smith",
+                          "defects": []
+                        }
+                      ]
+                    }
+                  },
+                  "noRuns": {
+                    "summary": "No runs found",
+                    "value": {
+                      "page": 1,
+                      "pageSize": 25,
+                      "totalPages": 0,
+                      "totalCount": 0,
+                      "results": []
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request Error",
+            "content": {
+              "application/json": {
+                "schema": {},
+                "examples": {
+                  "nullRequestBody": {
+                    "summary": "Request body missing",
+                    "value": {
+                      "error": "Request Body cannot be null or empty"
+                    }
+                  },
+                  "datesRequired": {
+                    "summary": "Dates missing",
+                    "value": {
+                      "error": "'fromDate' and 'toDate' are required."
+                    }
+                  },
+                  "invalidDateFormat": {
+                    "summary": "Invalid date format",
+                    "value": {
+                      "error": "'fromDate' must be a date in yyyy-MM-dd format (e.g. 2026-06-23)."
+                    }
+                  },
+                  "futureFromDate": {
+                    "summary": "fromDate in the future",
+                    "value": {
+                      "error": "'fromDate' cannot be in the future."
+                    }
+                  },
+                  "fromDateTooOld": {
+                    "summary": "fromDate older than one year",
+                    "value": {
+                      "error": "'fromDate' exceeds the 1-year retention window."
+                    }
+                  },
+                  "toDateBeforeFromDate": {
+                    "summary": "toDate before fromDate",
+                    "value": {
+                      "error": "'toDate' cannot be before 'fromDate'."
+                    }
+                  },
+                  "rangeTooLong": {
+                    "summary": "Date range longer than 90 days",
+                    "value": {
+                      "error": "Window exceeds 90 days. Narrow your date range."
+                    }
+                  },
+                  "invalidStatus": {
+                    "summary": "Invalid status",
+                    "value": {
+                      "error": "Invalid status 'COMPLETD'. Allowed values: SCHEDULED, IN_PROGRESS, COMPLETED, ABORTED, ERROR."
+                    }
+                  },
+                  "unsupportedExecutionParameter": {
+                    "summary": "Execution parameter type not supported",
+                    "value": {
+                      "error": "Execution parameter 'Notes' cannot be used as a filter. Only List and Boolean parameters are supported."
+                    }
+                  },
+                  "invalidBooleanExecutionParameter": {
+                    "summary": "Invalid Boolean execution parameter value",
+                    "value": {
+                      "error": "Invalid value 'yes' for execution parameter 'Headless'. Allowed values: true, false."
+                    }
                   }
                 }
               }
