@@ -483,9 +483,11 @@
                           "additionalProperties": { "type": "string" },
                           "description": "Custom fields to set, as pairs of name and value.",
                           "example": {
-                            "Priority": "High",
+                            "Summary": "Login flow validated",
                             "Release Date": "12/31/2026",
-                            "Browser": "chrome,firefox"
+                            "Automated": "True",
+                            "Reviewer": "john.doe@company.com",
+                            "Priority": "High"
                           }
                         },
                         "updateType": {
@@ -507,8 +509,11 @@
                     },
                     "customFields": {
                       "entries": {
-                        "Priority": "High",
-                        "Release Date": "12/31/2026"
+                        "Summary": "Login flow validated",
+                        "Release Date": "12/31/2026",
+                        "Automated": "True",
+                        "Reviewer": "john.doe@company.com",
+                        "Priority": "High"
                       }
                     }
                   },

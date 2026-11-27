@@ -693,8 +693,11 @@
                           "additionalProperties": { "type": "string" },
                           "description": "Custom fields to set, as pairs of name and value.",
                           "example": {
-                            "Priority": "High",
+                            "Summary": "Login flow validated",
                             "Release Date": "12/31/2026",
+                            "Automated": "True",
+                            "Reviewer": "john.doe@company.com",
+                            "Priority": "High",
                             "Browser": "chrome,firefox"
                           }
                         },
@@ -730,8 +733,11 @@
                     "scenarioIds": [7, 8],
                     "customFields": {
                       "entries": {
-                        "Priority": "High",
+                        "Summary": "Login flow validated",
                         "Release Date": "12/31/2026",
+                        "Automated": "True",
+                        "Reviewer": "john.doe@company.com",
+                        "Priority": "High",
                         "Browser": "chrome,firefox"
                       },
                       "updateType": "OVERRIDE"
@@ -993,9 +999,11 @@
                           "additionalProperties": { "type": "string" },
                           "description": "Custom fields to set, as pairs of name and value.",
                           "example": {
-                            "Priority": "High",
+                            "Summary": "Login flow validated",
                             "Release Date": "12/31/2026",
-                            "Browser": "chrome,firefox"
+                            "Automated": "True",
+                            "Reviewer": "john.doe@company.com",
+                            "Priority": "High"
                           }
                         },
                         "updateType": {
@@ -1016,18 +1024,21 @@
                     },
                     "customFields": {
                       "entries": {
-                        "Priority": "High",
-                        "Browser": "chrome,firefox"
-                      },
-                      "updateType": "OVERRIDE"
+                        "Summary": "Login flow validated",
+                        "Release Date": "12/31/2026",
+                        "Automated": "True",
+                        "Reviewer": "john.doe@company.com",
+                        "Priority": "High"
+                      }
                     }
                   },
                   {
                     "testCaseIds": [4440],
                     "customFields": {
                       "entries": {
-                        "Release Date": "12/31/2026"
-                      }
+                        "Browser": "chrome,firefox"
+                      },
+                      "updateType": "APPEND"
                     }
                   }
                 ]
