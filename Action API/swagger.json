@@ -429,6 +429,297 @@
           }
         }
       }
+    },
+    "/ctx/actions/bulk-update": {
+      "patch": {
+        "tags": ["Action"],
+        "summary": "Bulk update Action Status, Tags and Custom Fields",
+        "description": "Updates the status, tags, and custom fields of one or more Actions.\n\n#### Request fields\n\n| Field&nbsp;&nbsp;&nbsp;&nbsp; | Description |\n| --- | --- |\n| `actionIds`&nbsp;&nbsp;&nbsp;&nbsp; | IDs of the Actions to update. |\n| `status`&nbsp;&nbsp;&nbsp;&nbsp; | Status to set on each Action. |\n| `tags`&nbsp;&nbsp;&nbsp;&nbsp; | Tags to apply to each Action. Refer to the Tags section below. |\n| `customFields`&nbsp;&nbsp;&nbsp;&nbsp; | Custom fields to set on each Action. Refer to the Custom fields section below. |\n\n`actionIds` is required. At least one of `status`, `tags`, or `customFields` is also required. Requests that do not meet these conditions fail with an error.\n\n#### Tags\n\n| Field&nbsp;&nbsp;&nbsp;&nbsp; | Description |\n| --- | --- |\n| `entries`&nbsp;&nbsp;&nbsp;&nbsp; | Tags to apply to each Action. Each tag can have up to 255 characters. |\n| `updateType`&nbsp;&nbsp;&nbsp;&nbsp; | Determines how the specified tags are applied. `APPEND` keeps the existing tags and adds the new ones. `OVERRIDE` replaces all existing tags with the new ones. |\n\nBoth `entries` and `updateType` are required for `tags`. Requests that omit either one fail with an error.\n\n#### Custom fields\n\n| Field&nbsp;&nbsp;&nbsp;&nbsp; | Description |\n| --- | --- |\n| `entries`&nbsp;&nbsp;&nbsp;&nbsp; | Custom fields to set, as pairs of name and value. Refer to the Custom field rules section below for the format of each value. |\n| `updateType`&nbsp;&nbsp;&nbsp;&nbsp; | Update type for a multi-select custom field. `APPEND` keeps the existing options and adds the new ones. `OVERRIDE` replaces all existing options with the new ones. |\n\n`updateType` applies to custom fields of the Multi-select type only. It is required when a request updates a Multi-select custom field. It is not allowed when none of the custom fields in the request are of the Multi-select type.\n\n#### Custom field rules\n\n* Custom field names are case-insensitive.\n* A custom field that does not exist in the project causes the request to fail with an error.\n* A custom field with an empty value is ignored and keeps its current value.\n\n| Field type | Value format |\n| --- | --- |\n| Text, Text area | Plain text of up to 4096 characters. |\n| Date | Date in `MM/dd/yyyy` format, for example `12/31/2026`. |\n| Boolean | `True` or `False`. The values `1` and `0` are also accepted. |\n| User list | Email address of a user that exists in the project. |\n| Single select | An option that exists for the field. |\n| Multi-select | Options separated by commas, for example `chrome,firefox`. To include a comma in an option , write it as `\\\\,`. For example, `chrome\\\\,browser` selects the single option `chrome,browser`. |",
+        "operationId": "updateActions",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": ["actionIds"],
+                  "properties": {
+                    "actionIds": {
+                      "type": "array",
+                      "items": { "type": "integer" },
+                      "description": "IDs of the Actions to update.",
+                      "example": [101, 102]
+                    },
+                    "status": {
+                      "type": "string",
+                      "description": "Status to set on each Action.",
+                      "example": "In Progress"
+                    },
+                    "tags": {
+                      "type": "object",
+                      "required": ["entries", "updateType"],
+                      "properties": {
+                        "entries": {
+                          "type": "array",
+                          "items": { "type": "string" },
+                          "description": "Tags to apply to each Action. Each tag can have up to 255 characters.",
+                          "example": ["smoke", "login"]
+                        },
+                        "updateType": {
+                          "type": "string",
+                          "enum": ["APPEND", "OVERRIDE"],
+                          "description": "Determines how the specified tags are applied. `APPEND` keeps the existing tags and adds the new ones. `OVERRIDE` replaces all existing tags with the new ones."
+                        }
+                      }
+                    },
+                    "customFields": {
+                      "type": "object",
+                      "required": ["entries"],
+                      "properties": {
+                        "entries": {
+                          "type": "object",
+                          "additionalProperties": { "type": "string" },
+                          "description": "Custom fields to set, as pairs of name and value.",
+                          "example": {
+                            "Summary": "Login flow validated",
+                            "Release Date": "12/31/2026",
+                            "Automated": "True",
+                            "Reviewer": "john.doe@company.com",
+                            "Priority": "High"
+                          }
+                        },
+                        "updateType": {
+                          "type": "string",
+                          "enum": ["APPEND", "OVERRIDE"],
+                          "description": "Update type for a multi-select custom field. `APPEND` keeps the existing options and adds the new ones. `OVERRIDE` replaces all existing options with the new ones. Required when a multi-select custom field is updated, and not allowed otherwise."
+                        }
+                      }
+                    }
+                  }
+                },
+                "example": [
+                  {
+                    "actionIds": [101, 102],
+                    "status": "In Progress",
+                    "tags": {
+                      "entries": ["smoke", "login"],
+                      "updateType": "OVERRIDE"
+                    },
+                    "customFields": {
+                      "entries": {
+                        "Summary": "Login flow validated",
+                        "Release Date": "12/31/2026",
+                        "Automated": "True",
+                        "Reviewer": "john.doe@company.com",
+                        "Priority": "High"
+                      }
+                    }
+                  },
+                  {
+                    "actionIds": [110],
+                    "customFields": {
+                      "entries": {
+                        "Browser": "chrome,firefox"
+                      },
+                      "updateType": "APPEND"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Bulk update completed with detailed results showing successfully updated Actions, checkout conflicts, and not found Action IDs.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "updatedEntities": {
+                      "type": "array",
+                      "items": { "type": "integer" },
+                      "description": "List of action IDs that were successfully updated",
+                      "example": [101]
+                    },
+                    "notUpdatedOthersCheckedOutEntities": {
+                      "type": "array",
+                      "items": { "type": "integer" },
+                      "description": "Contains the action IDs that could not be updated because they are checked out by other users.",
+                      "example": [110]
+                    },
+                    "notFoundEntities": {
+                      "type": "array",
+                      "items": { "type": "integer" },
+                      "description": "List of action IDs that were not found",
+                      "example": [102]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "One or more values in the request are not valid. No Actions are updated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "actionIds cannot be null or empty"
+                    }
+                  }
+                },
+                "examples": {
+                  "nullRequestBody": {
+                    "summary": "Null request body",
+                    "value": {
+                      "error": "Request Body cannot be null or empty"
+                    }
+                  },
+                  "nullActionIds": {
+                    "summary": "Missing Action IDs",
+                    "value": {
+                      "error": "actionIds cannot be null or empty"
+                    }
+                  },
+                  "nothingToUpdate": {
+                    "summary": "No field to update",
+                    "value": {
+                      "error": "Bad request: Either 'status', 'tags' or 'customFields' must be specified."
+                    }
+                  },
+                  "statusNotFound": {
+                    "summary": "Status does not exist",
+                    "value": {
+                      "error": "Status with name 'Reviewed' not exist in this project"
+                    }
+                  },
+                  "tagTooLong": {
+                    "summary": "Tag name too long",
+                    "value": {
+                      "error": "One of the given tags exceeds the maximum length of 255 characters."
+                    }
+                  },
+                  "unknownCustomField": {
+                    "summary": "Custom field does not exist",
+                    "value": {
+                      "error": "Custom Field(s) Foo do not exist for Actions in this project."
+                    }
+                  },
+                  "invalidCustomFieldDate": {
+                    "summary": "Value is not a date in the MM/dd/yyyy format",
+                    "value": {
+                      "error": "Invalid date format '2026-12-31' for custom field Release Date. Expected format is MM/dd/yyyy."
+                    }
+                  },
+                  "invalidCustomFieldMonthDayOrYear": {
+                    "summary": "Invalid month, day, or year in a date custom field",
+                    "value": {
+                      "error": "Invalid month or day or year passed for custom field Release Date."
+                    }
+                  },
+                  "invalidCustomFieldValue": {
+                    "summary": "Invalid value for a custom field",
+                    "value": {
+                      "error": "Invalid value for custom field Priority with value 'Urgent'."
+                    }
+                  },
+                  "invalidCustomFieldOptions": {
+                    "summary": "Invalid options for a multi-select custom field",
+                    "value": {
+                      "error": "Invalid values for custom field Browser: safari."
+                    }
+                  },
+                  "customFieldTooLong": {
+                    "summary": "Custom field value too long",
+                    "value": {
+                      "error": "Custom Field 'Notes' exceeds maximum length of 4096 characters."
+                    }
+                  },
+                  "tagsIncomplete": {
+                    "summary": "Tags without entries or update type",
+                    "value": {
+                      "error": "tags.entries and tags.updateType must both be specified."
+                    }
+                  },
+                  "updateTypeRequired": {
+                    "summary": "Update type missing for a multi-select custom field",
+                    "value": {
+                      "error": "customFields.updateType must be specified when a multi-select custom field is updated."
+                    }
+                  },
+                  "updateTypeNotAllowed": {
+                    "summary": "Update type specified without a multi-select custom field",
+                    "value": {
+                      "error": "customFields.updateType is allowed only when a multi-select custom field is updated."
+                    }
+                  },
+                  "invalidUpdateType": {
+                    "summary": "Invalid update type",
+                    "value": {
+                      "error": "tags.updateType must be either APPEND or OVERRIDE."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid authentication credentials",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "Invalid user credentials or API key"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - User does not have permission to perform this operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "User does not have authorization to access this feature"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string",
+                      "example": "Internal error occurred while Action bulk update."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   }
 }

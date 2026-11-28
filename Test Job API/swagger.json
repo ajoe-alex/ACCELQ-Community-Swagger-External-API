@@ -39,6 +39,17 @@
             "example": 159
           },
           {
+            "name": "resultScope",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": ["consolidated", "original"],
+              "default": "consolidated"
+            },
+            "description": "- `consolidated` (default): Returns the consolidated results of the run, including the results of its re-runs.\n- `original`: Returns the results of the run, excluding its re-runs."
+          },
+          {
             "name": "user_id",
             "in": "header",
             "required": true,
